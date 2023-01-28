@@ -10,6 +10,34 @@
 
 U8G2_ST7565_ERC12864_ALT_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 8, /* data=*/ 9, /* cs=*/ 5, /* dc=*/ 7, /* reset=*/ 6);
 
+class A {
+
+};
+
+class B : public A {};
+
+class Widget {
+  protected:
+    uint8_t *font;
+    int x;
+    int y;
+  public:
+    Widget(int x, int y, uint8_t *widgetFont) {
+      font = widgetFont;
+      this -> x = x;
+      this -> y = y;
+    }
+    virtual void draw() = 0;
+};
+
+class ClockWidget : public Widget {
+  public:
+    ClockWidget(int x, int y, uint8_t *widgetFont) : Widget(x, y, widgetFont) { };
+    void draw() override {
+
+    }
+};
+
 void setup(void) {
   u8g2.begin();
   u8g2.setContrast(80);
@@ -32,7 +60,7 @@ void loop(void) {
   u8g2.setFont(u8g2_font_logisoso32_tf);
   u8g2.drawStr(38, 32, time);
 
-  u8g2.drawLine(0, 32, 127, 33);
+  u8g2.drawLine(0, 33, 127, 33);
 
   u8g2.setFont(u8g2_font_logisoso20_tf);
   u8g2.drawUTF8(0, 63, degree);
