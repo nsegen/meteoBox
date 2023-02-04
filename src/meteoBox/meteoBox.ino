@@ -30,12 +30,47 @@ class Widget {
     virtual void draw() = 0;
 };
 
-class ClockWidget : public Widget {
+template <typename T> 
+class BaseWidget : public Widget {
+  protected:
+    T value;
+    int (*drawer)(int, int, T);
   public:
-    ClockWidget(int x, int y, uint8_t *widgetFont) : Widget(x, y, widgetFont) { };
-    void draw() override {
-
+    BaseWidget(int x, int y, uint8_t *widgetFont, u8g2_uint_t (U8G2::*drawer)(u8g2_uint_t, u8g2_uint_t, T)) : Widget(x, y, widgetFont) {
+      this -> drawer = drawer;
     }
+    void setValue(T value) {
+      this -> value = value;
+    }  
+    void draw() override {
+      u8g2.setFont(font);
+      drawer(x, y, value);
+    }
+};
+
+class ClockWidget : public BaseWidget<const char*> {
+  public:
+    ClockWidget() : BaseWidget(38, 32, u8g2_font_logisoso32_tf, &u8g2.drawStr) { };
+};
+
+class TemperatureWidget : public BaseWidget<const char*> {
+  public:
+    TemperatureWidget() : BaseWidget(0, 63, u8g2_font_logisoso20_tf, &u8g2.drawUTF8) { };
+};
+
+class HumidityWidget : public BaseWidget<const char*> {
+  public:
+    HumidityWidget() : BaseWidget(74, 63, u8g2_font_logisoso20_tf, &u8g2.drawStr) { };
+};
+
+class WeatherWidget : public BaseWidget<uint16_t> {
+  public:
+    WeatherWidget() : BaseWidget(0, 32, u8g2_font_open_iconic_weather_4x_t, &u8g2.drawGlyph) { };
+};
+
+class CarbonDioxideLevelWidget : public BaseWidget<uint16_t> {
+  public:
+    CarbonDioxideLevelWidget() : BaseWidget(52, 63, u8g2_font_emoticons21_tr, &u8g2.drawGlyph) { };
 };
 
 void setup(void) {
@@ -50,24 +85,28 @@ char* degree = "22°C";
 char* humidity = "100%";
 char currentEmotic = 0;
 
+ClockWidget clockWidget = ClockWidget();
+WeatherWidget weatherWidget = WeatherWidget();
+CarbonDioxideLevelWidget carbonDioxideLevelWidget = CarbonDioxideLevelWidget();
+HumidityWidget humidityWidget = HumidityWidget();
+TemperatureWidget temperatureWidget = TemperatureWidget();
+Widget* allWidgets[] = { &clockWidget, &weatherWidget, &carbonDioxideLevelWidget, &humidityWidget, &temperatureWidget };
+
 void loop(void) {
   u8g2.clearBuffer();
 
-  u8g2.setFont(u8g2_font_open_iconic_weather_4x_t);
-  u8g2.drawGlyph(0, 32, 64 + weatherIcon);
-  weatherIcon = (weatherIcon + 1) % 6;
+  weatherWidget.setValue(64 +  weatherIcon);
+  clockWidget.setValue(time);
+  carbonDioxideLevelWidget.setValue(32 + currentEmotic);
+  humidityWidget.setValue(humidity);
+  temperatureWidget.setValue(degree);
 
-  u8g2.setFont(u8g2_font_logisoso32_tf);
-  u8g2.drawStr(38, 32, time);
-
+  for (Widget* widget : allWidgets) {
+    widget -> draw();
+  }
   u8g2.drawLine(0, 33, 127, 33);
 
-  u8g2.setFont(u8g2_font_logisoso20_tf);
-  u8g2.drawUTF8(0, 63, degree);
-  u8g2.drawStr(74, 63, humidity);
-
-  u8g2.setFont(u8g2_font_emoticons21_tr);
-  u8g2.drawGlyph(52, 63, 32 + currentEmotic);
+  weatherIcon = (weatherIcon + 1) % 6;
   currentEmotic = (currentEmotic + 1) % 10;
   // u8g2.drawLine(50, 32, 50, 63);
   // u8g2.drawLine(75, 32, 75, 63);
