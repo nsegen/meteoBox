@@ -10,19 +10,13 @@
 
 U8G2_ST7565_ERC12864_ALT_F_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 8, /* data=*/ 9, /* cs=*/ 5, /* dc=*/ 7, /* reset=*/ 6);
 
-class A {
-
-};
-
-class B : public A {};
-
 class Widget {
   protected:
-    uint8_t *font;
-    int x;
-    int y;
+    const unsigned char *font;
+    u8g2_uint_t x;
+    u8g2_uint_t y;
   public:
-    Widget(int x, int y, uint8_t *widgetFont) {
+    Widget(u8g2_uint_t x, u8g2_uint_t y, const unsigned char *widgetFont) {
       font = widgetFont;
       this -> x = x;
       this -> y = y;
@@ -33,44 +27,62 @@ class Widget {
 template <typename T> 
 class BaseWidget : public Widget {
   protected:
-    T value;
-    int (*drawer)(int, int, T);
+    T value;    
+    virtual void drawBody() = 0;
   public:
-    BaseWidget(int x, int y, uint8_t *widgetFont, u8g2_uint_t (U8G2::*drawer)(u8g2_uint_t, u8g2_uint_t, T)) : Widget(x, y, widgetFont) {
-      this -> drawer = drawer;
-    }
+    BaseWidget(u8g2_uint_t x, u8g2_uint_t y, const unsigned char *widgetFont) : Widget(x, y, widgetFont) {}
     void setValue(T value) {
       this -> value = value;
-    }  
+    }
     void draw() override {
       u8g2.setFont(font);
-      drawer(x, y, value);
+      drawBody();
     }
 };
 
-class ClockWidget : public BaseWidget<const char*> {
+class ClockWidget : public BaseWidget<char*> {
   public:
-    ClockWidget() : BaseWidget(38, 32, u8g2_font_logisoso32_tf, &u8g2.drawStr) { };
+    ClockWidget() : BaseWidget(38, 32, u8g2_font_logisoso32_tf) { };
+  protected:
+    void drawBody() override {
+      u8g2.drawStr(x, y, value);
+    }
 };
 
-class TemperatureWidget : public BaseWidget<const char*> {
+class TemperatureWidget : public BaseWidget<char*> {
   public:
-    TemperatureWidget() : BaseWidget(0, 63, u8g2_font_logisoso20_tf, &u8g2.drawUTF8) { };
+    TemperatureWidget() : BaseWidget(0, 63, u8g2_font_logisoso20_tf) { };
+  protected:
+    void drawBody() override {
+      u8g2.drawUTF8(x, y, value);
+    }
 };
 
-class HumidityWidget : public BaseWidget<const char*> {
+class HumidityWidget : public BaseWidget<char*> {
   public:
-    HumidityWidget() : BaseWidget(74, 63, u8g2_font_logisoso20_tf, &u8g2.drawStr) { };
+    HumidityWidget() : BaseWidget(74, 63, u8g2_font_logisoso20_tf) { };
+  protected:
+    void drawBody() override {
+      u8g2.drawStr(x, y, value);
+    }
 };
 
-class WeatherWidget : public BaseWidget<uint16_t> {
+class WeatherWidget : public BaseWidget<char> {
   public:
-    WeatherWidget() : BaseWidget(0, 32, u8g2_font_open_iconic_weather_4x_t, &u8g2.drawGlyph) { };
+    WeatherWidget() : BaseWidget(0, 32, u8g2_font_open_iconic_weather_4x_t) { };
+  protected:
+    void drawBody() override {
+      u8g2.drawGlyph(x, y, 64 + value);
+    }
 };
 
-class CarbonDioxideLevelWidget : public BaseWidget<uint16_t> {
+class CarbonDioxideLevelWidget : public BaseWidget<char> {
   public:
-    CarbonDioxideLevelWidget() : BaseWidget(52, 63, u8g2_font_emoticons21_tr, &u8g2.drawGlyph) { };
+    CarbonDioxideLevelWidget() : BaseWidget(52, 63, u8g2_font_emoticons21_tr) { };
+  protected:
+    void drawBody() override {
+      u8g2.drawGlyph(x, y, 32 + value);
+    }
 };
 
 void setup(void) {
@@ -95,9 +107,9 @@ Widget* allWidgets[] = { &clockWidget, &weatherWidget, &carbonDioxideLevelWidget
 void loop(void) {
   u8g2.clearBuffer();
 
-  weatherWidget.setValue(64 +  weatherIcon);
+  weatherWidget.setValue(weatherIcon);
   clockWidget.setValue(time);
-  carbonDioxideLevelWidget.setValue(32 + currentEmotic);
+  carbonDioxideLevelWidget.setValue(currentEmotic);
   humidityWidget.setValue(humidity);
   temperatureWidget.setValue(degree);
 
