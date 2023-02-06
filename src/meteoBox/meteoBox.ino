@@ -30,7 +30,7 @@ class BaseWidget : public Widget {
     T value;    
     virtual void drawBody() = 0;
   public:
-    BaseWidget(u8g2_uint_t x, u8g2_uint_t y, const unsigned char *widgetFont) : Widget(x, y, widgetFont) {}
+    using Widget::Widget;
     void setValue(T value) {
       this -> value = value;
     }
@@ -42,7 +42,7 @@ class BaseWidget : public Widget {
 
 class ClockWidget : public BaseWidget<char*> {
   public:
-    ClockWidget() : BaseWidget(38, 32, u8g2_font_logisoso32_tf) { };
+    using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
       u8g2.drawStr(x, y, value);
@@ -51,7 +51,7 @@ class ClockWidget : public BaseWidget<char*> {
 
 class TemperatureWidget : public BaseWidget<char*> {
   public:
-    TemperatureWidget() : BaseWidget(0, 63, u8g2_font_logisoso20_tf) { };
+    using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
       u8g2.drawUTF8(x, y, value);
@@ -60,7 +60,7 @@ class TemperatureWidget : public BaseWidget<char*> {
 
 class HumidityWidget : public BaseWidget<char*> {
   public:
-    HumidityWidget() : BaseWidget(74, 63, u8g2_font_logisoso20_tf) { };
+    using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
       u8g2.drawStr(x, y, value);
@@ -69,7 +69,7 @@ class HumidityWidget : public BaseWidget<char*> {
 
 class WeatherWidget : public BaseWidget<char> {
   public:
-    WeatherWidget() : BaseWidget(0, 32, u8g2_font_open_iconic_weather_4x_t) { };
+    using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
       u8g2.drawGlyph(x, y, 64 + value);
@@ -78,7 +78,7 @@ class WeatherWidget : public BaseWidget<char> {
 
 class CarbonDioxideLevelWidget : public BaseWidget<char> {
   public:
-    CarbonDioxideLevelWidget() : BaseWidget(52, 63, u8g2_font_emoticons21_tr) { };
+    using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
       u8g2.drawGlyph(x, y, 32 + value);
@@ -97,11 +97,11 @@ char* degree = "22°C";
 char* humidity = "100%";
 char currentEmotic = 0;
 
-ClockWidget clockWidget = ClockWidget();
-WeatherWidget weatherWidget = WeatherWidget();
-CarbonDioxideLevelWidget carbonDioxideLevelWidget = CarbonDioxideLevelWidget();
-HumidityWidget humidityWidget = HumidityWidget();
-TemperatureWidget temperatureWidget = TemperatureWidget();
+ClockWidget clockWidget = ClockWidget(38, 32, u8g2_font_logisoso32_tf);
+WeatherWidget weatherWidget = WeatherWidget(0, 32, u8g2_font_open_iconic_weather_4x_t);
+CarbonDioxideLevelWidget carbonDioxideLevelWidget = CarbonDioxideLevelWidget(52, 63, u8g2_font_emoticons21_tr);
+HumidityWidget humidityWidget = HumidityWidget(74, 63, u8g2_font_logisoso20_tf);
+TemperatureWidget temperatureWidget = TemperatureWidget(0, 63, u8g2_font_logisoso20_tf);
 Widget* allWidgets[] = { &clockWidget, &weatherWidget, &carbonDioxideLevelWidget, &humidityWidget, &temperatureWidget };
 
 void loop(void) {
