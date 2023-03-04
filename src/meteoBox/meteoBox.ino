@@ -50,6 +50,9 @@ class TemperatureWidget : public BaseWidget<uint8_t> {
     using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
+      char widgetValue[3];
+
+      snprintf(widgetValue, 3, "%d%", value);
       u8g2.drawUTF8(x, y, value);
     }
 };
@@ -59,8 +62,10 @@ class HumidityWidget : public BaseWidget<uint8_t> {
     using BaseWidget::BaseWidget;
   protected:
     void drawBody() override {
-      char
-      u8g2.drawStr(x, y, value);
+      char widgetValue[3];
+
+      snprintf(widgetValue, 3, "%d%", value);
+      u8g2.drawStr(x, y, widgetValue);
     }
 };
 
@@ -105,7 +110,9 @@ void setup(void) {
   
   // default settings
   // (you can also pass in a Wire library object like &Wire2)
-  status = bme.begin(BME280_ADDRESS_ALTERNATE);  
+  Serial.println(F("Before sensor"));
+  status = bme.begin(BME280_ADDRESS_ALTERNATE);
+  Serial.println(F("After sensor"));  
   u8g2.begin();
   u8g2.setContrast(80);
   u8g2.enableUTF8Print();
